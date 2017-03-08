@@ -57,12 +57,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     
     let player = SKSpriteNode(imageNamed: "player");
     
+    let scoreLabel = SKLabelNode(fontNamed: "Cuckoo");
+    
+    var numScore = 0;
+
+    
     override func didMove(to view: SKView) {
         
-        backgroundColor = SKColor.white;
+        backgroundColor = SKColor.green;
         physicsWorld.gravity = CGVector.zero;
         physicsWorld.contactDelegate = self;
         
+        // score
+        scoreLabel.text = String(format: "%02d", numScore);
+        scoreLabel.fontSize = 40;
+        scoreLabel.fontColor =  SKColor.white;
+        scoreLabel.position = CGPoint(x: size.width * 0.5, y: size.height * 0.9);
+        addChild(scoreLabel);
+        
+        
+        // player
         player.position = CGPoint(x: size.width*0.1, y: size.height * 0.5);
         addChild(player);
         
@@ -121,7 +135,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         let actionMoveDone = SKAction.removeFromParent();
         
-        monster.run(SKAction.sequence([actionMove, actionMoveDone]));
+        // lose Action
+        let loseAction = SKAction.run(){
+            let reveal = SKTransition.flipHorizontal(withDuration: 0.5);
+            let gameOverScene = DeadScene(size: self.size, won: false, score: self.numScore);
+            self.view?.presentScene(gameOverScene, transition: reveal);
+        }
+        
+        // ~~~~~~~~~~~~~~~
+        
+        monster.run(SKAction.sequence([actionMove, loseAction, actionMoveDone]));
     }
     
     
@@ -175,7 +198,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     
     func projectileDidCollideWithMonster(m_projectile: SKSpriteNode, m_monster: SKSpriteNode){
-        
+        numScore += 1;
+        scoreLabel.text = String(format: "%02d", numScore);
         print("hit");
         m_projectile.removeFromParent();
         m_monster.removeFromParent();
